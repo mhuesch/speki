@@ -45,6 +45,7 @@
             cargo2nix.packages.${system}.cargo2nix
             rust-bin.nightly.${rustVersion}.default
             #
+            alsaLib
             openssl
             pkg-config
           ];
