@@ -9,7 +9,7 @@
   outputs = { self, nixpkgs, cargo2nix, flake-utils, rust-overlay, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        rustVersion = "1.62.1";
+        rustVersion = "2022-11-01";
         #
         pkgs = import nixpkgs {
           inherit system;
@@ -21,14 +21,29 @@
         #
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           inherit rustVersion;
+          rustChannel = "nightly";
           packageFun = import ./Cargo.nix;
+
+          packageOverrides = pkgs: pkgs.rustBuilder.overrides.all ++ [
+
+            (pkgs.rustBuilder.rustLib.makeOverride {
+                name = "alsa-sys";
+                overrideAttrs = drv: {
+                  propagatedBuildInputs = drv.propagatedBuildInputs or [ ] ++ [
+                    pkgs.alsaLib
+                  ];
+                };
+            })
+          ];
         };
+
+
       in
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             cargo2nix.packages.${system}.cargo2nix
-            rust-bin.stable.${rustVersion}.default
+            rust-bin.nightly.${rustVersion}.default
             #
             openssl
             pkg-config
